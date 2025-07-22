@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D T-Rex Runner Game</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* AD STYLES */
+        .ad-container {
+            width: 100%;
+            background-color: #f5f5f5;
+            padding: 10px 0;
+            text-align: center;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .footer-ad {
+            width: 100%;
+            background-color: #f5f5f5;
+            padding: 10px 0;
+            text-align: center;
+            border-top: 1px solid #ddd;
+        }
+        
+        .ad-placeholder {
+            width: 728px;
+            height: 90px;
+            margin: 0 auto;
+            background-color: #e0e0e0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .mobile-ad {
+            width: 320px;
+            height: 50px;
+            margin: 0 auto;
+            background-color: #e0e0e0;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            color: #666;
+            font-size: 14px;
+        }
+
+        @media (max-width: 768px) {
+            .ad-placeholder {
+                display: none;
+            }
+            .mobile-ad {
+                display: flex;
+            }
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            overflow: hidden;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background-color: #f0f0f0;
+        }
+
+        #game-container {
+            position: relative;
+            width: 100%;
+            height: 100vh;
+            overflow: hidden;
+            background: linear-gradient(to bottom, #87CEEB, #E0F7FA);
+            animation: skyAnimation 60s linear infinite;
+        }
+
+        @keyframes skyAnimation {
+            0% { background: linear-gradient(to bottom, #87CEEB, #E0F7FA); }
+            25% { background: linear-gradient(to bottom, #4682B4, #B0E0E6); }
+            50% { background: linear-gradient(to bottom, #1E90FF, #ADD8E6); }
+            75% { background: linear-gradient(to bottom, #00BFFF, #B0E0E6); }
+            100% { background: linear-gradient(to bottom, #87CEEB, #E0F7FA); }
+        }
+
+        #game-screen {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+        }
+
+        #game-area {
+            position: relative;
+            width: 800px;
+            height: 300px;
+            overflow: hidden;
+            background-color: rgba(255, 255, 255, 0.3);
+            margin-top: 50px;
+            border-radius: 15px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+        }
+
+        #ground {
+            position: absolute;
+            bottom: 0;
+            width: 200%;
+            height: 40px;
+            background: linear-gradient(to bottom, 
+                #7CFC00 0%, 
+                #32CD32 20%, 
+                #228B22 40%, 
+                #006400 60%, 
+                #004d00 80%);
+            border-top: 3px solid #003300;
+            box-shadow: inset 0 10px 15px rgba(0,100,0,0.2);
+            animation: groundMove 5s linear infinite;
+        }
+
+        @keyframes groundMove {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
+
+        #dino {
+            position: absolute;
+            bottom: 40px;
+            left: 50px;
+            width: 60px;
+            height: 80px;
+            background-color: #333;
+            border-radius: 10px;
+            z-index: 10;
+            transform-style: preserve-3d;
+            transform: perspective(500px) rotateX(10deg);
+        }
+
+        #dino::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -10px;
+            width: 10px;
+            height: 100%;
+            background-color: #222;
+            transform-origin: right;
+            transform: rotateY(-45deg);
+            border-radius: 5px 0 0 5px;
+        }
+
+        #dino::after {
+            content: '';
+            position: absolute;
+            top: -10px;
+            left: 0;
+            width: 100%;
+            height: 10px;
+            background-color: #444;
+            transform-origin: bottom;
+            transform: rotateX(-45deg);
+            border-radius: 10px 10px 0 0;
+        }
+
+        .leg {
+            position: absolute;
+            bottom: -15px;
+            width: 15px;
+            height: 20px;
+            background-color: #222;
+            border-radius: 0 0 5px 5px;
+        }
+
+        #leg-front {
+            left: 15px;
+        }
+
+        #leg-back {
+            left: 35px;
+        }
+
+        .eye {
+            position: absolute;
+            top: 20px;
+            width: 10px;
+            height: 10px;
+            background-color: white;
+            border-radius: 50%;
+        }
+
+        #eye-left {
+            left: 10px;
+        }
+
+        #eye-right {
+            left: 40px;
+        }
+
+        .pupil {
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 6px;
+            height: 6px;
+            background-color: black;
+            border-radius: 50%;
+        }
+
+        .obstacle {
+            position: absolute;
+            bottom: 40px;
+            width: 30px;
+            height: 50px;
+            background-color: #c33;
+            border-radius: 5px;
+            transform-style: preserve-3d;
+            transform: perspective(500px) rotateX(10deg);
+        }
+
+        .obstacle::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -8px;
+            width: 8px;
+            height: 100%;
+            background-color: #a22;
+            transform-origin: right;
+            transform: rotateY(-45deg);
+            border-radius: 5px 0 0 5px;
+        }
+
+        .obstacle::after {
+            content: '';
+            position: absolute;
+            top: -8px;
+            left: 0;
+            width: 100%;
+            height: 8px;
+            background-color: #e44;
+            transform-origin: bottom;
+            transform: rotateX(-45deg);
+            border-radius: 5px 5px 0 0;
+        }
+
+        .cloud {
+            position: absolute;
+            background-color: #f0f0f0;
+            border-radius: 50%;
+            opacity: 0.9;
+            filter: blur(2px);
+        }
+
+        #score-display {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 28px;
+            font-weight: bold;
+            color: #333;
+            z-index: 100;
+            background-color: rgba(255, 255, 255, 0.7);
+            padding: 5px 15px;
+            border-radius: 20px;
+        }
+
+        #high-score-display {
+            position: absolute;
+            top: 60px;
+            right: 20px;
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+            z-index: 100;
+            background-color: rgba(255, 255, 255, 0.7);
+            padding: 3px 10px;
+            border-radius: 15px;
+        }
+
+        #game-over {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 200;
+        }
+
+        #game-over h2 {
+            color: white;
+            font-size: 42px;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        #final-score {
+            color: #ffcc00;
+            font-size: 32px;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+
+        #final-high-score {
+            color: #4CAF50;
+            font-size: 26px;
+            margin-bottom: 30px;
+            font-weight: bold;
+        }
+
+        #restart-btn {
+            padding: 12px 30px;
+            background-color: #ff5722;
+            color: white;
+            border: none;
+            border-radius: 30px;
+            font-size: 18px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        #restart-btn:hover {
+            background-color: #ff7043;
+            transform: translateY(-2px);
+        }
+
+        #start-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 200;
+        }
+
+        #start-screen h1 {
+            color: white;
+            font-size: 48px;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        #start-btn {
+            padding: 12px 30px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 30px;
+            font-size: 18px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        #start-btn:hover {
+            background-color: #66BB6A;
+            transform: translateY(-2px);
+        }
+
+        #instructions {
+            color: #ddd;
+            margin-top: 30px;
+            text-align: center;
+            line-height: 1.6;
+            max-width: 80%;
+        }
+
+        #sound-control {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 300;
+            background-color: rgba(255, 255, 255, 0.7);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        #sound-control i {
+            font-size: 20px;
+            color: #333;
+        }
+
+        .jump {
+            animation: jump 0.8s linear;
+        }
+
+        @keyframes jump {
+            0% { transform: perspective(500px) rotateX(10deg) translateY(0); }
+            50% { transform: perspective(500px) rotateX(10deg) translateY(-150px); }
+            100% { transform: perspective(500px) rotateX(10deg) translateY(0); }
+        }
+
+        .move {
+            animation: move 3s linear infinite;
+        }
+
+        @keyframes move {
+            from { left: 800px; }
+            to { left: -30px; }
+        }
+
+        .move-cloud {
+            animation: move-cloud 25s linear infinite;
+        }
+
+        @keyframes move-cloud {
+            from { left: 800px; }
+            to { left: -100px; }
+        }
+
+        #controls {
+            position: absolute;
+            top: 200px;
+            display: flex;
+            gap: 15px;
+            z-index: 100;
+        }
+
+        .control-btn {
+            padding: 10px 20px;
+            background-color: #2196F3;
+            color: white;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: bold;
+        }
+
+        .control-btn:hover {
+            background-color: #0b7dda;
+            transform: translateY(-2px);
+        }
+
+        #middle-jump-btn {
+            position: absolute;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px;
+            height: 100px;
+            background-color: rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 50;
+            border: 3px solid rgba(255, 255, 255, 0.5);
+            backdrop-filter: blur(5px);
+            transition: all 0.2s;
+        }
+
+        #middle-jump-btn:hover {
+            background-color: rgba(255, 255, 255, 0.4);
+            transform: translateX(-50%) scale(1.05);
+        }
+
+        #middle-jump-btn::after {
+            content: '↑';
+            font-size: 40px;
+            color: white;
+            text-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+        }
+
+        @media (max-width: 850px) {
+            #game-area {
+                width: 95vw;
+                height: 60vw;
+            }
+
+            #dino {
+                width: 12vw;
+                height: 16vw;
+                bottom: 40px;
+            }
+
+            .obstacle {
+                width: 6vw;
+                height: 10vw;
+                bottom: 40px;
+            }
+
+            #score-display {
+                font-size: 5vw;
+            }
+
+            #high-score-display {
+                font-size: 3.5vw;
+            }
+
+            #controls {
+                top: 40px;
+            }
+
+            #middle-jump-btn {
+                width: 80px;
+                height: 80px;
+                bottom: 80px;
+            }
+
+            #middle-jump-btn::after {
+                font-size: 30px;
+            }
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+</head>
+<body>
+    <!-- HEADER AD -->
+    <div class="ad-container">
+        <div class="ad-placeholder">
+            <script type="text/javascript">
+                atOptions = {
+                    'key' : '42907d31c7191ae2f30cb88f42ba9fe7',
+                    'format' : 'iframe',
+                    'height' : 90,
+                    'width' : 728,
+                    'params' : {}
+                };
+            </script>
+            <script type="text/javascript" src="//www.highperformanceformat.com/42907d31c7191ae2f30cb88f42ba9fe7/invoke.js"></script>
+        </div>
+        <div class="mobile-ad">
+            <script type="text/javascript">
+                atOptions = {
+                    'key' : '2304ba093d30763a388f85a38bf67876',
+                    'format' : 'iframe',
+                    'height' : 50,
+                    'width' : 320,
+                    'params' : {}
+                };
+            </script>
+            <script type="text/javascript" src="//www.highperformanceformat.com/2304ba093d30763a388f85a38bf67876/invoke.js"></script>
+        </div>
+    </div>
+
+    <div id="game-container">
+        <div id="sound-control" title="Toggle Sound">
+            <i class="fas fa-volume-up"></i>
+        </div>
+        
+        <div id="game-screen">
+            <div id="game-area">
+                <div id="ground"></div>
+                <div id="dino">
+                    <div class="leg" id="leg-front"></div>
+                    <div class="leg" id="leg-back"></div>
+                    <div class="eye" id="eye-left"><div class="pupil"></div></div>
+                    <div class="eye" id="eye-right"><div class="pupil"></div></div>
+                </div>
+                <div id="score-display">0</div>
+                <div id="high-score-display">High: 0</div>
+            </div>
+            <div id="middle-jump-btn" title="Jump"></div>
+        </div>
+
+        <div id="start-screen">
+            <h1>3D T-Rex Runner</h1>
+            <button id="start-btn">Start Game</button>
+            <div id="instructions">
+                <p>Press SPACE, UP ARROW or CLICK to jump</p>
+                <p>Avoid the red obstacles to survive</p>
+                <p>Each jump gives you 5 points!</p>
+            </div>
+        </div>
+
+        <div id="game-over">
+            <h2>Game Over</h2>
+            <div id="final-score">Score: 0</div>
+            <div id="final-high-score">High Score: 0</div>
+            <button id="restart-btn">Play Again</button>
+        </div>
+    </div>
+
+    <!-- FOOTER AD -->
+    <div class="footer-ad">
+        <div class="ad-placeholder">
+            <script type="text/javascript">
+                atOptions = {
+                    'key' : '42907d31c7191ae2f30cb88f42ba9fe7',
+                    'format' : 'iframe',
+                    'height' : 90,
+                    'width' : 728,
+                    'params' : {}
+                };
+            </script>
+            <script type="text/javascript" src="//www.highperformanceformat.com/42907d31c7191ae2f30cb88f42ba9fe7/invoke.js"></script>
+        </div>
+        <div class="mobile-ad">
+            <script type="text/javascript">
+                atOptions = {
+                    'key' : '2304ba093d30763a388f85a38bf67876',
+                    'format' : 'iframe',
+                    'height' : 50,
+                    'width' : 320,
+                    'params' : {}
+                };
+            </script>
+            <script type="text/javascript" src="//www.highperformanceformat.com/2304ba093d30763a388f85a38bf67876/invoke.js"></script>
+        </div>
+    </div>
+
+    <div id="controls">
+        <button class="control-btn" id="jump-btn"></button>
+        <button class="control-btn" id="mobile-jump-btn"></button>
+    </div>
+
+    <audio id="background-music" loop>
+        <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" type="audio/mpeg">
+    </audio>
+
+    <audio id="jump-sound">
+        <source src="https://www.soundjay.com/buttons/sounds/button-09.mp3" type="audio/mpeg">
+    </audio>
+
+    <audio id="gameover-sound">
+        <source src="https://www.soundjay.com/buttons/sounds/button-10.mp3" type="audio/mpeg">
+    </audio>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const dino = document.getElementById('dino');
+            const gameArea = document.getElementById('game-area');
+            const scoreDisplay = document.getElementById('score-display');
+            const highScoreDisplay = document.getElementById('high-score-display');
+            const gameOverScreen = document.getElementById('game-over');
+            const finalScoreDisplay = document.getElementById('final-score');
+            const finalHighScoreDisplay = document.getElementById('final-high-score');
+            const restartBtn = document.getElementById('restart-btn');
+            const startScreen = document.getElementById('start-screen');
+            const startBtn = document.getElementById('start-btn');
+            const jumpBtn = document.getElementById('jump-btn');
+            const mobileJumpBtn = document.getElementById('mobile-jump-btn');
+            const middleJumpBtn = document.getElementById('middle-jump-btn');
+            const soundControl = document.getElementById('sound-control');
+            const soundIcon = soundControl.querySelector('i');
+            
+            // Audio elements
+            const bgMusic = document.getElementById('background-music');
+            const jumpSound = document.getElementById('jump-sound');
+            const gameOverSound = document.getElementById('gameover-sound');
+
+            let isJumping = false;
+            let isGameOver = false;
+            let score = 0;
+            let highScore = localStorage.getItem('trexHighScore') || 0;
+            let gameSpeed = 1;
+            let isSoundOn = true;
+            let obstacleInterval;
+            let cloudInterval;
+            let scoreInterval;
+
+            // Initialize high score display
+            highScoreDisplay.textContent = `High: ${highScore}`;
+
+            // Sound control
+            soundControl.addEventListener('click', toggleSound);
+
+            function toggleSound() {
+                isSoundOn = !isSoundOn;
+                if (isSoundOn) {
+                    soundIcon.className = 'fas fa-volume-up';
+                    bgMusic.play();
+                } else {
+                    soundIcon.className = 'fas fa-volume-mute';
+                    bgMusic.pause();
+                }
+            }
+
+            // Start game
+            startBtn.addEventListener('click', startGame);
+            restartBtn.addEventListener('click', restartGame);
+            jumpBtn.addEventListener('click', jump);
+            mobileJumpBtn.addEventListener('click', jump);
+            middleJumpBtn.addEventListener('click', jump);
+
+            // Keyboard controls
+            document.addEventListener('keydown', (e) => {
+                if ((e.code === 'Space' || e.key === ' ' || e.key === 'ArrowUp') && !isJumping && !isGameOver) {
+                    jump();
+                }
+            });
+
+            // Touch controls for mobile
+            gameArea.addEventListener('click', () => {
+                if (!isJumping && !isGameOver) {
+                    jump();
+                }
+            });
+
+            function startGame() {
+                startScreen.style.display = 'none';
+                gameOverScreen.style.display = 'none';
+                isGameOver = false;
+                score = 0;
+                gameSpeed = 1;
+                scoreDisplay.textContent = score;
+
+                // Play background music
+                if (isSoundOn) {
+                    bgMusic.currentTime = 0;
+                    bgMusic.play();
+                }
+
+                // Clear any existing obstacles
+                document.querySelectorAll('.obstacle, .cloud').forEach(el => el.remove());
+
+                // Start generating obstacles
+                obstacleInterval = setInterval(createObstacle, 2000);
+                
+                // Start generating clouds
+                cloudInterval = setInterval(createCloud, 3000);
+                
+                // Start scoring
+                scoreInterval = setInterval(updateScore, 300);
+            }
+
+            function jump() {
+                if (isJumping || isGameOver) return;
+                
+                isJumping = true;
+                dino.classList.add('jump');
+                
+                // Play jump sound
+                if (isSoundOn) {
+                    jumpSound.currentTime = 0;
+                    jumpSound.play();
+                }
+                
+                // Add points for jumping
+                score += 5;
+                scoreDisplay.textContent = score;
+                
+                setTimeout(() => {
+                    dino.classList.remove('jump');
+                    isJumping = false;
+                }, 800);
+            }
+
+            function createObstacle() {
+                if (isGameOver) return;
+                
+                const obstacle = document.createElement('div');
+                obstacle.classList.add('obstacle', 'move');
+                gameArea.appendChild(obstacle);
+                
+                // Random height for obstacles
+                const height = Math.random() * 30 + 40;
+                obstacle.style.height = `${height}px`;
+                
+                // Fixed speed (slower)
+                obstacle.style.animationDuration = `3000ms`;
+                
+                // Remove obstacle when it goes off screen
+                obstacle.addEventListener('animationiteration', () => {
+                    obstacle.remove();
+                });
+                
+                // Check for collision
+                const checkCollision = setInterval(() => {
+                    if (isGameOver) {
+                        clearInterval(checkCollision);
+                        return;
+                    }
+                    
+                    const dinoRect = dino.getBoundingClientRect();
+                    const obstacleRect = obstacle.getBoundingClientRect();
+                    
+                    // Improved collision detection
+                    if (
+                        obstacleRect.left < dinoRect.right - 15 &&
+                        obstacleRect.right > dinoRect.left + 15 &&
+                        obstacleRect.bottom > dinoRect.top + 20 &&
+                        obstacleRect.top < dinoRect.bottom - 10
+                    ) {
+                        gameOver();
+                        clearInterval(checkCollision);
+                    }
+                }, 10);
+            }
+
+            function createCloud() {
+                if (isGameOver) return;
+                
+                const cloud = document.createElement('div');
+                cloud.classList.add('cloud', 'move-cloud');
+                
+                // Random size and position for clouds
+                const size = Math.random() * 50 + 30;
+                const top = Math.random() * 100 + 20;
+                const opacity = Math.random() * 0.5 + 0.4;
+                
+                cloud.style.width = `${size}px`;
+                cloud.style.height = `${size * 0.6}px`;
+                cloud.style.top = `${top}px`;
+                cloud.style.opacity = opacity;
+                cloud.style.animationDuration = `25000ms`;
+                
+                // Random cloud shape
+                cloud.style.borderRadius = `${size}px ${size}px ${size}px ${size}px`;
+                
+                gameArea.appendChild(cloud);
+                
+                // Remove cloud when it goes off screen
+                cloud.addEventListener('animationiteration', () => {
+                    cloud.remove();
+                });
+            }
+
+            function updateScore() {
+                if (isGameOver) return;
+                
+                // Increase score (slower)
+                score += 1;
+                scoreDisplay.textContent = score;
+                
+                // Gradually increase difficulty (but much slower)
+                if (score % 500 === 0) {
+                    gameSpeed += 0.2;
+                    
+                    document.querySelectorAll('.obstacle').forEach(el => {
+                        el.style.animationDuration = `${3000 / gameSpeed}ms`;
+                    });
+                    
+                    document.querySelectorAll('.cloud').forEach(el => {
+                        el.style.animationDuration = `${25000 / gameSpeed}ms`;
+                    });
+                }
+            }
+
+            function gameOver() {
+                isGameOver = true;
+                clearInterval(obstacleInterval);
+                clearInterval(cloudInterval);
+                clearInterval(scoreInterval);
+                
+                // Play game over sound
+                if (isSoundOn) {
+                    gameOverSound.currentTime = 0;
+                    gameOverSound.play();
+                    bgMusic.pause();
+                }
+                
+                // Update high score if needed
+                if (score > highScore) {
+                    highScore = score;
+                    localStorage.setItem('trexHighScore', highScore);
+                    highScoreDisplay.textContent = `High: ${Math.floor(highScore)}`;
+                }
+                
+                finalScoreDisplay.textContent = `Score: ${Math.floor(score)}`;
+                finalHighScoreDisplay.textContent = `High Score: ${Math.floor(highScore)}`;
+                gameOverScreen.style.display = 'flex';
+            }
+
+            function restartGame() {
+                startGame();
+            }
+        });
+    </script>
+</body>
+</html>
