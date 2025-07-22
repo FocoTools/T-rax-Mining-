@@ -23,9 +23,20 @@
         .footer-ad {
             width: 100%;
             background-color: #f5f5f5;
-            padding: 10px 0;
+            padding: 20px 0;
             text-align: center;
             border-top: 1px solid #ddd;
+            position: relative;
+            z-index: 1000;
+        }
+        
+        .native-ad-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 15px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
         
         .ad-placeholder {
@@ -59,23 +70,25 @@
             .mobile-ad {
                 display: flex;
             }
+            .footer-ad {
+                padding: 10px 0;
+            }
         }
 
         body {
             font-family: 'Arial', sans-serif;
-            overflow: hidden;
-            height: 100vh;
+            overflow-x: hidden;
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
             background-color: #f0f0f0;
         }
 
         #game-container {
             position: relative;
             width: 100%;
-            height: 100vh;
+            height: calc(100vh - 180px);
+            min-height: 300px;
             overflow: hidden;
             background: linear-gradient(to bottom, #87CEEB, #E0F7FA);
             animation: skyAnimation 60s linear infinite;
@@ -428,59 +441,36 @@
             to { left: -100px; }
         }
 
-        #controls {
-            position: absolute;
-            top: 200px;
-            display: flex;
-            gap: 15px;
-            z-index: 100;
-        }
-
-        .control-btn {
-            padding: 10px 20px;
-            background-color: #2196F3;
-            color: white;
-            border: none;
-            border-radius: 20px;
-            cursor: pointer;
-            transition: all 0.3s;
-            font-weight: bold;
-        }
-
-        .control-btn:hover {
-            background-color: #0b7dda;
-            transform: translateY(-2px);
-        }
-
-        #middle-jump-btn {
-            position: absolute;
-            bottom: 100px;
+        /* Green Jump Button */
+        #jump-button {
+            position: fixed;
+            bottom: 120px;
             left: 50%;
             transform: translateX(-50%);
-            width: 100px;
-            height: 100px;
-            background-color: rgba(255, 255, 255, 0.3);
+            width: 80px;
+            height: 80px;
+            background-color: #4CAF50;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            z-index: 50;
-            border: 3px solid rgba(255, 255, 255, 0.5);
-            backdrop-filter: blur(5px);
+            z-index: 1001;
+            border: none;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
             transition: all 0.2s;
         }
 
-        #middle-jump-btn:hover {
-            background-color: rgba(255, 255, 255, 0.4);
+        #jump-button:hover {
+            background-color: #45a049;
             transform: translateX(-50%) scale(1.05);
         }
 
-        #middle-jump-btn::after {
+        #jump-button::after {
             content: '↑';
             font-size: 40px;
             color: white;
-            text-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+            text-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
         }
 
         @media (max-width: 850px) {
@@ -509,19 +499,35 @@
                 font-size: 3.5vw;
             }
 
-            #controls {
-                top: 40px;
+            .footer-ad {
+                padding-bottom: 10px;
             }
 
-            #middle-jump-btn {
-                width: 80px;
-                height: 80px;
-                bottom: 80px;
+            #jump-button {
+                width: 70px;
+                height: 70px;
+                bottom: 110px;
             }
 
-            #middle-jump-btn::after {
-                font-size: 30px;
+            #jump-button::after {
+                font-size: 35px;
             }
+        }
+
+        /* Game Content Container */
+        .game-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+        }
+
+        /* Native Ad Container Below Game */
+        .native-ad-below-game {
+            width: 100%;
+            padding: 20px 0;
+            background-color: #f5f5f5;
+            margin-top: 20px;
         }
     </style>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
@@ -555,47 +561,59 @@
         </div>
     </div>
 
-    <div id="game-container">
-        <div id="sound-control" title="Toggle Sound">
-            <i class="fas fa-volume-up"></i>
-        </div>
-        
-        <div id="game-screen">
-            <div id="game-area">
-                <div id="ground"></div>
-                <div id="dino">
-                    <div class="leg" id="leg-front"></div>
-                    <div class="leg" id="leg-back"></div>
-                    <div class="eye" id="eye-left"><div class="pupil"></div></div>
-                    <div class="eye" id="eye-right"><div class="pupil"></div></div>
+    <div class="game-content">
+        <div id="game-container">
+            <div id="sound-control" title="Toggle Sound">
+                <i class="fas fa-volume-up"></i>
+            </div>
+            
+            <div id="game-screen">
+                <div id="game-area">
+                    <div id="ground"></div>
+                    <div id="dino">
+                        <div class="leg" id="leg-front"></div>
+                        <div class="leg" id="leg-back"></div>
+                        <div class="eye" id="eye-left"><div class="pupil"></div></div>
+                        <div class="eye" id="eye-right"><div class="pupil"></div></div>
+                    </div>
+                    <div id="score-display">0</div>
+                    <div id="high-score-display">High: 0</div>
                 </div>
-                <div id="score-display">0</div>
-                <div id="high-score-display">High: 0</div>
             </div>
-            <div id="middle-jump-btn" title="Jump"></div>
+
+            <div id="start-screen">
+                <h1>3D T-Rex Runner</h1>
+                <button id="start-btn">Start Game</button>
+                <div id="instructions">
+                    <p>Press SPACE, UP ARROW or CLICK to jump</p>
+                    <p>Avoid the red obstacles to survive</p>
+                    <p>Each second gives you 1 point, each jump gives 1.5 points!</p>
+                </div>
+            </div>
+
+            <div id="game-over">
+                <h2>Game Over</h2>
+                <div id="final-score">Score: 0</div>
+                <div id="final-high-score">High Score: 0</div>
+                <button id="restart-btn">Play Again</button>
+            </div>
         </div>
 
-        <div id="start-screen">
-            <h1>3D T-Rex Runner</h1>
-            <button id="start-btn">Start Game</button>
-            <div id="instructions">
-                <p>Press SPACE, UP ARROW or CLICK to jump</p>
-                <p>Avoid the red obstacles to survive</p>
-                <p>Each jump gives you 5 points!</p>
+        <!-- Native Ad Below Game -->
+        <div class="native-ad-below-game">
+            <div class="native-ad-container">
+                <script async="async" data-cfasync="false" src="//pl26716660.profitableratecpm.com/1bd921e4eac7061b2dca891f7d6ed179/invoke.js"></script>
+                <div id="container-1bd921e4eac7061b2dca891f7d6ed179"></div>
             </div>
-        </div>
-
-        <div id="game-over">
-            <h2>Game Over</h2>
-            <div id="final-score">Score: 0</div>
-            <div id="final-high-score">High Score: 0</div>
-            <button id="restart-btn">Play Again</button>
         </div>
     </div>
 
+    <!-- Green Jump Button -->
+    <button id="jump-button" title="Jump"></button>
+
     <!-- FOOTER AD -->
     <div class="footer-ad">
-        <div class="ad-placeholder">
+        <div class="native-ad-container">
             <script type="text/javascript">
                 atOptions = {
                     'key' : '42907d31c7191ae2f30cb88f42ba9fe7',
@@ -619,11 +637,6 @@
             </script>
             <script type="text/javascript" src="//www.highperformanceformat.com/2304ba093d30763a388f85a38bf67876/invoke.js"></script>
         </div>
-    </div>
-
-    <div id="controls">
-        <button class="control-btn" id="jump-btn"></button>
-        <button class="control-btn" id="mobile-jump-btn"></button>
     </div>
 
     <audio id="background-music" loop>
@@ -650,11 +663,9 @@
             const restartBtn = document.getElementById('restart-btn');
             const startScreen = document.getElementById('start-screen');
             const startBtn = document.getElementById('start-btn');
-            const jumpBtn = document.getElementById('jump-btn');
-            const mobileJumpBtn = document.getElementById('mobile-jump-btn');
-            const middleJumpBtn = document.getElementById('middle-jump-btn');
             const soundControl = document.getElementById('sound-control');
             const soundIcon = soundControl.querySelector('i');
+            const jumpButton = document.getElementById('jump-button');
             
             // Audio elements
             const bgMusic = document.getElementById('background-music');
@@ -691,9 +702,7 @@
             // Start game
             startBtn.addEventListener('click', startGame);
             restartBtn.addEventListener('click', restartGame);
-            jumpBtn.addEventListener('click', jump);
-            mobileJumpBtn.addEventListener('click', jump);
-            middleJumpBtn.addEventListener('click', jump);
+            jumpButton.addEventListener('click', jump);
 
             // Keyboard controls
             document.addEventListener('keydown', (e) => {
@@ -732,8 +741,13 @@
                 // Start generating clouds
                 cloudInterval = setInterval(createCloud, 3000);
                 
-                // Start scoring
-                scoreInterval = setInterval(updateScore, 300);
+                // Start scoring (1 point per second)
+                scoreInterval = setInterval(() => {
+                    if (!isGameOver) {
+                        score += 1;
+                        scoreDisplay.textContent = Math.floor(score);
+                    }
+                }, 1000);
             }
 
             function jump() {
@@ -748,9 +762,9 @@
                     jumpSound.play();
                 }
                 
-                // Add points for jumping
-                score += 5;
-                scoreDisplay.textContent = score;
+                // Add points for jumping (1.5 points)
+                score += 1.5;
+                scoreDisplay.textContent = Math.floor(score);
                 
                 setTimeout(() => {
                     dino.classList.remove('jump');
@@ -826,27 +840,6 @@
                 cloud.addEventListener('animationiteration', () => {
                     cloud.remove();
                 });
-            }
-
-            function updateScore() {
-                if (isGameOver) return;
-                
-                // Increase score (slower)
-                score += 1;
-                scoreDisplay.textContent = score;
-                
-                // Gradually increase difficulty (but much slower)
-                if (score % 500 === 0) {
-                    gameSpeed += 0.2;
-                    
-                    document.querySelectorAll('.obstacle').forEach(el => {
-                        el.style.animationDuration = `${3000 / gameSpeed}ms`;
-                    });
-                    
-                    document.querySelectorAll('.cloud').forEach(el => {
-                        el.style.animationDuration = `${25000 / gameSpeed}ms`;
-                    });
-                }
             }
 
             function gameOver() {
