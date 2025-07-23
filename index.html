@@ -408,7 +408,22 @@
             cursor: pointer;
         }
 
-        #sound-control i {
+        #pause-control {
+            position: absolute;
+            top: 70px;
+            left: 20px;
+            z-index: 300;
+            background-color: rgba(255, 255, 255, 0.7);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        #sound-control i, #pause-control i {
             font-size: 20px;
             color: #333;
         }
@@ -443,8 +458,8 @@
 
         /* Green Jump Button */
         #jump-button {
-            position: fixed;
-            bottom: 120px;
+            position: absolute;
+            bottom: 20px;
             left: 50%;
             transform: translateX(-50%);
             width: 80px;
@@ -452,6 +467,7 @@
             background-color: #4CAF50;
             border-radius: 50%;
             display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
             cursor: pointer;
@@ -466,11 +482,18 @@
             transform: translateX(-50%) scale(1.05);
         }
 
-        #jump-button::after {
-            content: '↑';
-            font-size: 40px;
+        #jump-button span {
+            font-size: 16px;
             color: white;
+            font-weight: bold;
             text-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+            line-height: 1;
+        }
+
+        #jump-button i {
+            font-size: 24px;
+            color: white;
+            margin-bottom: 5px;
         }
 
         @media (max-width: 850px) {
@@ -506,11 +529,15 @@
             #jump-button {
                 width: 70px;
                 height: 70px;
-                bottom: 110px;
+                bottom: 15px;
             }
 
-            #jump-button::after {
-                font-size: 35px;
+            #jump-button span {
+                font-size: 14px;
+            }
+
+            #jump-button i {
+                font-size: 20px;
             }
         }
 
@@ -520,6 +547,7 @@
             flex-direction: column;
             align-items: center;
             width: 100%;
+            position: relative;
         }
 
         /* Native Ad Container Below Game */
@@ -528,6 +556,10 @@
             padding: 20px 0;
             background-color: #f5f5f5;
             margin-top: 20px;
+        }
+
+        .paused {
+            animation-play-state: paused !important;
         }
     </style>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
@@ -567,6 +599,10 @@
                 <i class="fas fa-volume-up"></i>
             </div>
             
+            <div id="pause-control" title="Pause Game">
+                <i class="fas fa-pause"></i>
+            </div>
+            
             <div id="game-screen">
                 <div id="game-area">
                     <div id="ground"></div>
@@ -597,6 +633,12 @@
                 <div id="final-high-score">High Score: 0</div>
                 <button id="restart-btn">Play Again</button>
             </div>
+
+            <!-- Green Jump Button -->
+            <button id="jump-button" title="Jump">
+                <i class="fas fa-arrow-up"></i>
+                <span>Jump</span>
+            </button>
         </div>
 
         <!-- Native Ad Below Game -->
@@ -607,9 +649,6 @@
             </div>
         </div>
     </div>
-
-    <!-- Green Jump Button -->
-    <button id="jump-button" title="Jump"></button>
 
     <!-- FOOTER AD -->
     <div class="footer-ad">
@@ -664,8 +703,11 @@
             const startScreen = document.getElementById('start-screen');
             const startBtn = document.getElementById('start-btn');
             const soundControl = document.getElementById('sound-control');
+            const pauseControl = document.getElementById('pause-control');
             const soundIcon = soundControl.querySelector('i');
+            const pauseIcon = pauseControl.querySelector('i');
             const jumpButton = document.getElementById('jump-button');
+            const ground = document.getElementById('ground');
             
             // Audio elements
             const bgMusic = document.getElementById('background-music');
@@ -674,6 +716,7 @@
 
             let isJumping = false;
             let isGameOver = false;
+            let isPaused = false;
             let score = 0;
             let highScore = localStorage.getItem('trexHighScore') || 0;
             let gameSpeed = 1;
@@ -688,6 +731,9 @@
             // Sound control
             soundControl.addEventListener('click', toggleSound);
 
+            // Pause control
+            pauseControl.addEventListener('click', togglePause);
+
             function toggleSound() {
                 isSoundOn = !isSoundOn;
                 if (isSoundOn) {
@@ -699,6 +745,40 @@
                 }
             }
 
+            function togglePause() {
+                if (isGameOver) return;
+                
+                isPaused = !isPaused;
+                
+                if (isPaused) {
+                    pauseIcon.className = 'fas fa-play';
+                    // Pause all animations
+                    document.querySelectorAll('.move, .move-cloud, .jump, #ground').forEach(el => {
+                        el.classList.add('paused');
+                    });
+                    // Pause game intervals
+                    clearInterval(obstacleInterval);
+                    clearInterval(cloudInterval);
+                    clearInterval(scoreInterval);
+                    // Pause music
+                    bgMusic.pause();
+                } else {
+                    pauseIcon.className = 'fas fa-pause';
+                    // Resume all animations
+                    document.querySelectorAll('.move, .move-cloud, .jump, #ground').forEach(el => {
+                        el.classList.remove('paused');
+                    });
+                    // Resume game intervals
+                    obstacleInterval = setInterval(createObstacle, 2000);
+                    cloudInterval = setInterval(createCloud, 3000);
+                    scoreInterval = setInterval(updateScore, 1000);
+                    // Resume music if sound is on
+                    if (isSoundOn) {
+                        bgMusic.play();
+                    }
+                }
+            }
+
             // Start game
             startBtn.addEventListener('click', startGame);
             restartBtn.addEventListener('click', restartGame);
@@ -706,14 +786,19 @@
 
             // Keyboard controls
             document.addEventListener('keydown', (e) => {
-                if ((e.code === 'Space' || e.key === ' ' || e.key === 'ArrowUp') && !isJumping && !isGameOver) {
+                if (isPaused && e.code === 'Space') {
+                    togglePause();
+                    return;
+                }
+                
+                if ((e.code === 'Space' || e.key === ' ' || e.key === 'ArrowUp') && !isJumping && !isGameOver && !isPaused) {
                     jump();
                 }
             });
 
             // Touch controls for mobile
             gameArea.addEventListener('click', () => {
-                if (!isJumping && !isGameOver) {
+                if (!isJumping && !isGameOver && !isPaused) {
                     jump();
                 }
             });
@@ -722,6 +807,8 @@
                 startScreen.style.display = 'none';
                 gameOverScreen.style.display = 'none';
                 isGameOver = false;
+                isPaused = false;
+                pauseIcon.className = 'fas fa-pause';
                 score = 0;
                 gameSpeed = 1;
                 scoreDisplay.textContent = score;
@@ -742,16 +829,18 @@
                 cloudInterval = setInterval(createCloud, 3000);
                 
                 // Start scoring (1 point per second)
-                scoreInterval = setInterval(() => {
-                    if (!isGameOver) {
-                        score += 1;
-                        scoreDisplay.textContent = Math.floor(score);
-                    }
-                }, 1000);
+                scoreInterval = setInterval(updateScore, 1000);
+            }
+
+            function updateScore() {
+                if (!isGameOver && !isPaused) {
+                    score += 1;
+                    scoreDisplay.textContent = Math.floor(score);
+                }
             }
 
             function jump() {
-                if (isJumping || isGameOver) return;
+                if (isJumping || isGameOver || isPaused) return;
                 
                 isJumping = true;
                 dino.classList.add('jump');
@@ -773,7 +862,7 @@
             }
 
             function createObstacle() {
-                if (isGameOver) return;
+                if (isGameOver || isPaused) return;
                 
                 const obstacle = document.createElement('div');
                 obstacle.classList.add('obstacle', 'move');
@@ -793,7 +882,7 @@
                 
                 // Check for collision
                 const checkCollision = setInterval(() => {
-                    if (isGameOver) {
+                    if (isGameOver || isPaused) {
                         clearInterval(checkCollision);
                         return;
                     }
@@ -815,7 +904,7 @@
             }
 
             function createCloud() {
-                if (isGameOver) return;
+                if (isGameOver || isPaused) return;
                 
                 const cloud = document.createElement('div');
                 cloud.classList.add('cloud', 'move-cloud');
