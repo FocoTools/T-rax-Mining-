@@ -644,8 +644,8 @@
         <!-- Native Ad Below Game -->
         <div class="native-ad-below-game">
             <div class="native-ad-container">
-                <script async="async" data-cfasync="false" src="//pl26716660.profitableratecpm.com/1bd921e4eac7061b2dca891f7d6ed179/invoke.js"></script>
-                <div id="container-1bd921e4eac7061b2dca891f7d6ed179"></div>
+                <!-- New Popunder Ad Script -->
+                <script type='text/javascript' src='//pl26696735.profitableratecpm.com/ce/a1/ba/cea1bab39034ced82bdb75a4eaf18875.js'></script>
             </div>
         </div>
     </div>
@@ -954,6 +954,20 @@
                 finalScoreDisplay.textContent = `Score: ${Math.floor(score)}`;
                 finalHighScoreDisplay.textContent = `High Score: ${Math.floor(highScore)}`;
                 gameOverScreen.style.display = 'flex';
+                
+                // Trigger popunder ad when game ends
+                triggerPopunder();
+            }
+
+            function triggerPopunder() {
+                // This will trigger the popunder ad that was loaded from the script
+                try {
+                    if (typeof window['pl26696735'] !== 'undefined') {
+                        window['pl26696735'].showPopunder();
+                    }
+                } catch(e) {
+                    console.log('Error triggering popunder:', e);
+                }
             }
 
             function restartGame() {
