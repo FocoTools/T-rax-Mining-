@@ -561,6 +561,63 @@
         .paused {
             animation-play-state: paused !important;
         }
+
+        /* Redirect Modal Styles */
+        #redirect-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            color: white;
+            text-align: center;
+        }
+
+        #redirect-modal h2 {
+            font-size: 28px;
+            margin-bottom: 20px;
+        }
+
+        #redirect-countdown {
+            font-size: 24px;
+            margin-bottom: 20px;
+            color: #ffcc00;
+        }
+
+        #redirect-buttons {
+            display: flex;
+            gap: 15px;
+        }
+
+        .redirect-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        #continue-btn {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        #cancel-btn {
+            background-color: #f44336;
+            color: white;
+        }
+
+        .redirect-btn:hover {
+            opacity: 0.8;
+            transform: translateY(-2px);
+        }
     </style>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
 </head>
@@ -670,6 +727,16 @@
         </div>
     </div>
 
+    <!-- Redirect Modal -->
+    <div id="redirect-modal">
+        <h2>You're being redirected to an external site</h2>
+        <div id="redirect-countdown">Redirecting in 3 seconds...</div>
+        <div id="redirect-buttons">
+            <button id="continue-btn" class="redirect-btn">Continue</button>
+            <button id="cancel-btn" class="redirect-btn">Cancel</button>
+        </div>
+    </div>
+
     <!-- New Popunder Ad Script -->
     <script type='text/javascript' src='//pl26738193.profitableratecpm.com/14/73/ea/1473eaf8f925b2bd8f230efc9e259fd6.js'></script>
 
@@ -704,6 +771,12 @@
             const jumpButton = document.getElementById('jump-button');
             const ground = document.getElementById('ground');
             
+            // Redirect modal elements
+            const redirectModal = document.getElementById('redirect-modal');
+            const redirectCountdown = document.getElementById('redirect-countdown');
+            const continueBtn = document.getElementById('continue-btn');
+            const cancelBtn = document.getElementById('cancel-btn');
+            
             // Audio elements
             const bgMusic = document.getElementById('background-music');
             const jumpSound = document.getElementById('jump-sound');
@@ -719,6 +792,11 @@
             let obstacleInterval;
             let cloudInterval;
             let scoreInterval;
+            let redirectTimer;
+            let countdown = 3;
+
+            // Check if user has already been redirected
+            const hasRedirected = localStorage.getItem('hasRedirected') === 'true';
 
             // Initialize high score display
             highScoreDisplay.textContent = `High: ${highScore}`;
@@ -728,6 +806,18 @@
 
             // Pause control
             pauseControl.addEventListener('click', togglePause);
+
+            // Redirect modal buttons
+            continueBtn.addEventListener('click', () => {
+                clearTimeout(redirectTimer);
+                localStorage.setItem('hasRedirected', 'true');
+                window.location.href = "https://www.profitableratecpm.com/b8dxkk1fn?key=6757166254a957c88be0a8243a650f7f";
+            });
+
+            cancelBtn.addEventListener('click', () => {
+                clearTimeout(redirectTimer);
+                redirectModal.style.display = 'none';
+            });
 
             function toggleSound() {
                 isSoundOn = !isSoundOn;
@@ -952,6 +1042,30 @@
                 
                 // Trigger popunder ad when game ends
                 triggerPopunder();
+                
+                // Show redirect modal after 5 seconds if not already redirected
+                if (!hasRedirected) {
+                    setTimeout(showRedirectModal, 5000);
+                }
+            }
+
+            function showRedirectModal() {
+                redirectModal.style.display = 'flex';
+                countdown = 3;
+                updateCountdown();
+                
+                redirectTimer = setTimeout(() => {
+                    localStorage.setItem('hasRedirected', 'true');
+                    window.location.href = "https://www.profitableratecpm.com/b8dxkk1fn?key=6757166254a957c88be0a8243a650f7f";
+                }, 3000);
+            }
+
+            function updateCountdown() {
+                redirectCountdown.textContent = `Redirecting in ${countdown} seconds...`;
+                if (countdown > 0) {
+                    countdown--;
+                    setTimeout(updateCountdown, 1000);
+                }
             }
 
             function triggerPopunder() {
